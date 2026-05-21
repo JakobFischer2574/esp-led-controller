@@ -94,7 +94,7 @@ def html_page():
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>ESP32 LED Controller (ELC)</title>
+    <title>ESP32-LED-Controller (ELC)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
