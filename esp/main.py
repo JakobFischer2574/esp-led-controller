@@ -165,7 +165,7 @@ def html_page():
 </head>
 <body>
     <div class="container">
-        <h1>ESP32 LED Controller</h1>
+        <h1>ESP32-LED-Controller (ELC)</h1>
 
         <div id="led-container"></div>
 
