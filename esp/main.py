@@ -31,6 +31,10 @@ def run_test_pattern(leds):
     # Alle LEDs gleichzeitig einschalten
     for led in leds:
         led.on()
+        sleep(1)
+        led.off()
+        sleep(1)
+        led.on()
 
     sleep(1)
 
