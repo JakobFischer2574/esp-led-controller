@@ -14,7 +14,7 @@ except Exception as e:
 LED_PINS = [14, 27, 25, 32, 33]
 
 # Update-Check alle 60 Sekunden
-UPDATE_INTERVAL_MS = 10_000
+UPDATE_INTERVAL_MS = 60_000
 
 leds = []
 led_states = [0, 0, 0, 0, 0]
