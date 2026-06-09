@@ -136,6 +136,27 @@ def set_all_leds(state):
 
     print("All LEDs set to", state)
 
+def set_led_bits(bits):
+    if bits is None:
+        return False
+
+    if len(bits) != len(leds):
+        return False
+
+    for char in bits:
+        if char not in ("0", "1"):
+            return False
+
+    stop_error_code(False)
+
+    for i in range(len(leds)):
+        state = 1 if bits[i] == "1" else 0
+        internal_set_led(i, state)
+
+    print("LED bits set to:", bits)
+
+    return True
+
 
 def run_test_pattern():
     stop_error_code(False)
@@ -454,6 +475,17 @@ def handle_request(path):
 
     if path.startswith("/api/codes"):
         return json_codes(), "application/json", "200 OK"
+
+    if path.startswith("/api/state"):
+        query = parse_query(path)
+        bits = query.get("bits", "")
+
+        success = set_led_bits(bits)
+
+        if success:
+            return json_status(), "application/json", "200 OK"
+
+        return '{"ok":false,"error":"invalid bits"}', "application/json", "400 Bad Request"
 
     if path.startswith("/api/set"):
         query = parse_query(path)
