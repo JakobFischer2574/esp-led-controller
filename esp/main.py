@@ -5,6 +5,12 @@ import socket
 import os
 import gc
 
+try:
+    import updater
+except Exception as e:
+    updater = None
+    print("Updater not available:", e)
+
 
 # ============================================================
 # Konfiguration
@@ -136,6 +142,7 @@ def set_all_leds(state):
 
     print("All LEDs set to", state)
 
+
 def set_led_bits(bits):
     if bits is None:
         return False
@@ -235,6 +242,28 @@ def get_ip_address():
         return wlan.ifconfig()[0]
 
     return "not connected"
+
+
+def check_update_on_startup():
+    if updater is None:
+        print("Startup update check skipped: updater not available")
+        return
+
+    print("Startup update check...")
+
+    try:
+        gc.collect()
+        print("Free memory before update check:", gc.mem_free())
+        updater.check_for_update()
+        gc.collect()
+        print("Free memory after update check:", gc.mem_free())
+
+    except Exception as e:
+        print("Startup update check failed:", e)
+        print("System continues with existing version")
+
+    finally:
+        gc.collect()
 
 
 # ============================================================
@@ -607,7 +636,13 @@ def main():
 
     print("LED API controller started")
     print("No camera frontend on ESP32")
+    print("Startup update check enabled")
     print("No periodic HTTPS updater during runtime")
+
+    # Einmaliger Update-Check beim Start.
+    # Danach wird kein periodischer Update-Check mehr ausgefuehrt,
+    # damit der ESP32 waehrend der Datenerzeugung stabil bleibt.
+    check_update_on_startup()
 
     server_socket = start_server()
 
