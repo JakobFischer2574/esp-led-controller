@@ -18,6 +18,12 @@ except Exception as e:
 
 LED_PINS = [14, 27, 25, 32, 33]
 
+# Logische LED-Reihenfolge fuer API/YAML/Webapp.
+# led_1 wird auf den letzten physischen LED-Ausgang gemappt,
+# led_5 auf den ersten physischen LED-Ausgang.
+# Beispiel: /api/set?led=1 steuert intern LED_PINS[4].
+LED_INDEX_MAP = [4, 3, 2, 1, 0]
+
 LOG_FILE = "recordings.csv"
 
 # Sehr kleiner Timeout, damit update_blinking() regelmäßig laufen kann.
@@ -91,17 +97,23 @@ def setup_leds():
         leds.append(led)
 
     print("LEDs initialized")
+    print("Logical LED map:", LED_INDEX_MAP)
 
 
 def internal_set_led(index, state):
-    if index < 0 or index >= len(leds):
+    if index < 0 or index >= len(LED_INDEX_MAP):
+        return False
+
+    physical_index = LED_INDEX_MAP[index]
+
+    if physical_index < 0 or physical_index >= len(leds):
         return False
 
     if state == 1:
-        leds[index].on()
+        leds[physical_index].on()
         led_states[index] = 1
     else:
-        leds[index].off()
+        leds[physical_index].off()
         led_states[index] = 0
 
     return True
@@ -117,7 +129,7 @@ def stop_error_code(also_turn_off=False):
     active_blink_ms = [0, 0, 0, 0, 0]
 
     if also_turn_off:
-        for i in range(len(leds)):
+        for i in range(len(led_states)):
             internal_set_led(i, 0)
 
     print("Error code stopped")
@@ -137,7 +149,7 @@ def set_led(index, state):
 def set_all_leds(state):
     stop_error_code(False)
 
-    for i in range(len(leds)):
+    for i in range(len(led_states)):
         internal_set_led(i, state)
 
     print("All LEDs set to", state)
@@ -147,7 +159,7 @@ def set_led_bits(bits):
     if bits is None:
         return False
 
-    if len(bits) != len(leds):
+    if len(bits) != len(led_states):
         return False
 
     for char in bits:
@@ -156,7 +168,7 @@ def set_led_bits(bits):
 
     stop_error_code(False)
 
-    for i in range(len(leds)):
+    for i in range(len(led_states)):
         state = 1 if bits[i] == "1" else 0
         internal_set_led(i, state)
 
@@ -170,19 +182,19 @@ def run_test_pattern():
 
     print("Running test pattern")
 
-    for i in range(len(leds)):
+    for i in range(len(led_states)):
         internal_set_led(i, 1)
         sleep(0.2)
         internal_set_led(i, 0)
 
     sleep(0.3)
 
-    for i in range(len(leds)):
+    for i in range(len(led_states)):
         internal_set_led(i, 1)
 
     sleep(0.7)
 
-    for i in range(len(leds)):
+    for i in range(len(led_states)):
         internal_set_led(i, 0)
 
 
@@ -204,7 +216,7 @@ def play_error_code(code):
     now = ticks_ms()
     last_blink_toggle = [now, now, now, now, now]
 
-    for i in range(len(leds)):
+    for i in range(len(led_states)):
         internal_set_led(i, active_base_states[i])
 
     print("Playing error code:", code)
@@ -218,7 +230,7 @@ def update_blinking():
 
     now = ticks_ms()
 
-    for i in range(len(leds)):
+    for i in range(len(led_states)):
         interval = active_blink_ms[i]
 
         if interval > 0:
